@@ -48,15 +48,27 @@ $(function ()
 	      x1: 370, y1: 150,
 	      cx1: 410, cy1: 200,
 	      x2: 370, y2: 250,
+	      mouseover: function (layer) { $(this).css('cursor', '-webkit-grab'); },
+	      mouseout: function (layer) { $(this).css('cursor', ''); },
 	      dragstart: function (layer)
 	      {
+		  $(this).css('cursor', '-webkit-grabbing');
 		  this.offsetTheta = getRot(layer.eventX, layer.eventY);
 	      },
 	      drag: function (layer)
 	      {
+		  var rot = rotation;
 		  layer.x = layer.y = 0;
 		  rotation = getRot(layer.eventX, layer.eventY) - this.offsetTheta;
-	      }
+		  rotation = Math.floor(rotation / (Math.PI / 4)) * Math.PI / 4;
+		  $('canvas')
+		      .rotateCanvas({
+			  rotate: (rotation - rot) * 180 / Math.PI,
+			  x: 200, y: 200
+		      });
+	      },
+	      dragstop: function (layer) { $(this).css('cursor', ''); },
+	      dragcancel: function (layer) { $(this).css('cursor', ''); }
 	  });
 
       var Limb = function (name, x0, y0, len0, th0, len1, th1)
@@ -73,12 +85,14 @@ $(function ()
       };
       var _ = function (i) { return ['-upper', '-lower'][i]; };
       var norm = function (x, y) { return Math.pow(x * x + y * y, 0.5); };
+      var globalXY = function (x, y, rot) { x -= 200; y -= 200; return { x: 200 + x * Math.cos(rot) + y * Math.sin(rot), y: 200 - x * Math.sin(rot) + y * Math.cos(rot) }; };
+      var localXY = function (x, y, rot) { return globalXY(x, y, -rot); };
       Limb.prototype = {
 	  mouseover: function (canvas, part)
 	  {
 	      canvas.getLayer(this.name + _(part)).strokeStyle = '#f00';
 	      canvas.moveLayer(this.name + _(part), 1);
-	      canvas.css('cursor', 'move');
+	      canvas.css('cursor', '-webkit-grab');
 	  },
 	  mouseout: function (canvas, part)
 	  {
@@ -87,15 +101,19 @@ $(function ()
 	  },
 	  dragstart: function (canvas, part)
 	  {
+	      var layer, layer_shadow, offset;
+	      canvas.css('cursor', '-webkit-grabbing');
 	      for (var i = 0; i < 2; i++)
 	      {
-		  var layer = canvas.getLayer(this.name + _(i)), layer_shadow = canvas.getLayer(this.name + _(i) + '-shadow');
+		  layer = canvas.getLayer(this.name + _(i));
+		  layer_shadow = canvas.getLayer(this.name + _(i) + '-shadow');
 		  layer.strokeStyle = 'rgba(0, 0, 0, 0.1)';
 		  layer_shadow.shadowStroke = true;
 		  layer_shadow.strokeStyle = '#f00';
 		  layer_shadow.strokeWidth = 6;
 	      }
-	      var layer = canvas.getLayer(this.name + _(part)), layer_shadow = canvas.getLayer(this.name + _(part) + '-shadow');
+	      layer = canvas.getLayer(this.name + _(part));
+	      layer_shadow = canvas.getLayer(this.name + _(part) + '-shadow');
 	      canvas.moveLayer(this.name + _(part) + '-shadow');
 	      this.offsetX = layer_shadow.eventX - layer_shadow.x2;
 	      this.offsetY = layer_shadow.eventY - layer_shadow.y2;
@@ -103,8 +121,8 @@ $(function ()
 	  drag: function (canvas, part)
 	  {
 	      var layer = canvas.getLayer(this.name + _(part)), layer_shadow = canvas.getLayer(this.name + _(part) + '-shadow');
-	      layer_shadow.x = layer_shadow.y = 0;
 	      var len = norm(layer_shadow.eventX - this.offsetX - layer_shadow.x1, layer_shadow.eventY - this.offsetY - layer_shadow.y1);
+	      layer_shadow.x = layer_shadow.y = 0;
 	      layer_shadow.x2 = layer_shadow.x1 + (layer_shadow.eventX - this.offsetX - layer_shadow.x1) * this['len' + part] / len;
 	      layer_shadow.y2 = layer_shadow.y1 + (layer_shadow.eventY - this.offsetY - layer_shadow.y1) * this['len' + part] / len;
 	      if (part == 0)
@@ -112,16 +130,19 @@ $(function ()
 		  var layer_lower = canvas.getLayer(this.name + _(1) + '-shadow');
 		  layer_lower.x1 = layer_shadow.x2;
 		  layer_lower.y1 = layer_shadow.y2;
-		  var len = norm(layer_lower.x2 - layer_lower.x1, layer_lower.y2 - layer_lower.y1);
+		  len = norm(layer_lower.x2 - layer_lower.x1, layer_lower.y2 - layer_lower.y1);
 		  layer_lower.x2 = layer_lower.x1 + (layer_lower.x2 - layer_lower.x1) * this.len1 / len;
 		  layer_lower.y2 = layer_lower.y1 + (layer_lower.y2 - layer_lower.y1) * this.len1 / len;
 	      }
 	  },
 	  dragstop: function (canvas, part)
 	  {
+	      var layer, layer_shadow;
+	      canvas.css('cursor', '');
 	      for (var i = 0; i < 2; i++)
 	      {
-		  var layer = canvas.getLayer(this.name + _(i)), layer_shadow = canvas.getLayer(this.name + _(i) + '-shadow');
+		  layer = canvas.getLayer(this.name + _(i));
+		  layer_shadow = canvas.getLayer(this.name + _(i) + '-shadow');
 		  layer.strokeStyle = '#000';
 		  layer_shadow.shadowStroke = false;
 		  layer_shadow.strokeStyle = 'rgba(0, 0, 0, 0.0)';
@@ -130,7 +151,8 @@ $(function ()
 		  for (var p in params)
 		      layer[params[p]] = layer_shadow[params[p]];
 	      }
-	      var layer = canvas.getLayer(this.name + _(part)), layer_shadow = canvas.getLayer(this.name + _(part) + '-shadow');
+	      layer = canvas.getLayer(this.name + _(part));
+	      layer_shadow = canvas.getLayer(this.name + _(part) + '-shadow');
 	      canvas.moveLayer(this.name + _(part), 1);
 	      if (part == 0)
 	      {
