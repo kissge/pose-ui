@@ -51,36 +51,37 @@ $(function ()
 	  this.y2 = this.y1 + len1 * Math.sin((th0 + th1) * Math.PI);
 	  this.name = name;
       };
+      var _ = function (i) { return ['-upper', '-lower'][i]; };
       Limb.prototype = {
-	  mouseover: function (canvas)
+	  mouseover: function (canvas, part)
 	  {
-	      canvas.getLayer(this.name).strokeStyle = '#f00';
+	      canvas.getLayer(this.name + _(part)).strokeStyle = '#f00';
 	  },
-	  mouseout: function (canvas)
+	  mouseout: function (canvas, part)
 	  {
-	      canvas.getLayer(this.name).strokeStyle = '#000';
+	      canvas.getLayer(this.name + _(part)).strokeStyle = '#000';
 	  },
-	  dragstart: function (canvas)
+	  dragstart: function (canvas, part)
 	  {
-	      var layer = canvas.getLayer(this.name), layer_shadow = canvas.getLayer(this.name + '-shadow');
+	      var layer = canvas.getLayer(this.name + _(part)), layer_shadow = canvas.getLayer(this.name + _(part) + '-shadow');
 	      layer.strokeStyle = 'rgba(0, 0, 0, 0.1)';
 	      layer_shadow.strokeStyle = 'maroon';
 	      layer_shadow.strokeWidth = 6;
-	      canvas.moveLayer(this.name + '-shadow');
+	      canvas.moveLayer(this.name + _(part) + '-shadow');
 	  },
-	  drag: function (canvas)
+	  drag: function (canvas, part)
 	  {
 	  },
-	  dragstop: function (canvas)
+	  dragstop: function (canvas, part)
 	  {
-	      var layer = canvas.getLayer(this.name), layer_shadow = canvas.getLayer(this.name + '-shadow');
+	      var layer = canvas.getLayer(this.name + _(part)), layer_shadow = canvas.getLayer(this.name + _(part) + '-shadow');
 	      layer.strokeStyle = '#f00';
 	      layer.x = layer_shadow.x;
 	      layer.y = layer_shadow.y;
-	      canvas.moveLayer(this.name, 1);
+	      canvas.moveLayer(this.name + _(part), 1);
 	      layer_shadow.strokeStyle = 'rgba(0, 0, 0, 0.0)';
 	      layer_shadow.strokeWidth = 30;
-	      canvas.moveLayer(this.name + '-shadow', 2);
+	      canvas.moveLayer(this.name + _(part) + '-shadow', 2);
 	      canvas.drawLayers();
 	  },
 	  init: function (canvas)
@@ -92,8 +93,7 @@ $(function ()
 		      strokeWidth: 6,
 		      x1: this.x0, y1: this.y0,
 		      x2: this.x1, y2: this.y1,
-		      x3: this.x2, y3: this.y2,
-		      name: this.name
+		      name: this.name + '-upper'
 		  })
 		  .drawLine({
 		      draggable: true,
@@ -101,13 +101,35 @@ $(function ()
 		      strokeWidth: 30,
 		      x1: this.x0, y1: this.y0,
 		      x2: this.x1, y2: this.y1,
-		      x3: this.x2, y3: this.y2,
-		      name: this.name + '-shadow',
-		      mouseover: Limb.prototype.mouseover.bind(this, canvas),
-		      mouseout: Limb.prototype.mouseout.bind(this, canvas),
-		      dragstart: Limb.prototype.dragstart.bind(this, canvas),
-		      drag: Limb.prototype.drag.bind(this, canvas),
-		      dragstop: Limb.prototype.dragstop.bind(this, canvas)
+		      name: this.name + '-upper-shadow',
+		      mouseover: Limb.prototype.mouseover.bind(this, canvas, 0),
+		      mouseout: Limb.prototype.mouseout.bind(this, canvas, 0),
+		      dragstart: Limb.prototype.dragstart.bind(this, canvas, 0),
+		      drag: Limb.prototype.drag.bind(this, canvas, 0),
+		      dragstop: Limb.prototype.dragstop.bind(this, canvas, 0),
+		      dragcancel: Limb.prototype.dragstop.bind(this, canvas, 0)
+		  })
+		  .drawLine({
+		      draggable: true,
+		      strokeStyle: '#000',
+		      strokeWidth: 6,
+		      x1: this.x1, y1: this.y1,
+		      x2: this.x2, y2: this.y2,
+		      name: this.name + '-lower'
+		  })
+		  .drawLine({
+		      draggable: true,
+		      strokeStyle: 'rgba(0, 0, 0, 0.0)',
+		      strokeWidth: 30,
+		      x1: this.x1, y1: this.y1,
+		      x2: this.x2, y2: this.y2,
+		      name: this.name + '-lower-shadow',
+		      mouseover: Limb.prototype.mouseover.bind(this, canvas, 1),
+		      mouseout: Limb.prototype.mouseout.bind(this, canvas, 1),
+		      dragstart: Limb.prototype.dragstart.bind(this, canvas, 1),
+		      drag: Limb.prototype.drag.bind(this, canvas, 1),
+		      dragstop: Limb.prototype.dragstop.bind(this, canvas, 1),
+		      dragcancel: Limb.prototype.dragstop.bind(this, canvas, 1)
 		  });
 	  }
       };
