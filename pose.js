@@ -54,6 +54,12 @@ $(function ()
 	      {
 		  $(this).css('cursor', '-webkit-grabbing');
 	      },
+	      drag: function (layer)
+	      {
+		  var conversion = globalXY(layer.eventX, layer.eventY, rotation);
+		  layer.x = conversion.x;
+		  layer.y = conversion.y;
+	      },
 	      dragstop: function (layer) { $(this).css('cursor', '-webkit-grab'); },
 	      dragcancel: function (layer)
 	      {
@@ -80,14 +86,17 @@ $(function ()
 	      dragstart: function (layer)
 	      {
 		  $(this).css('cursor', '-webkit-grabbing');
-		  this.offsetTheta = getRot(layer.eventX, layer.eventY);
+		  var conversion = globalXY(layer.eventX, layer.eventY, rotation);
+		  this.offsetTheta = getRot(conversion.x, conversion.y);
 	      },
 	      drag: function (layer)
 	      {
+		  console.log(rotation * 180 / Math.PI);
 		  var rot = rotation;
 		  layer.x = layer.y = 0;
-		  rotation = getRot(layer.eventX, layer.eventY) - this.offsetTheta;
-		  rotation = Math.floor(rotation / (Math.PI / 4)) * Math.PI / 4;
+		  var conversion = globalXY(layer.eventX, layer.eventY, rotation);
+		  rotation = getRot(conversion.x, conversion.y) - this.offsetTheta;
+		  rotation = Math.floor(rotation / (Math.PI / 36)) * Math.PI / 36;
 		  $('canvas')
 		      .rotateCanvas({
 			  rotate: (rotation - rot) * 180 / Math.PI,
@@ -145,8 +154,11 @@ $(function ()
 	      this.offsetX = layer_shadow.eventX - layer_shadow.x2;
 	      this.offsetY = layer_shadow.eventY - layer_shadow.y2;
 	  },
-	  drag: function (canvas, part)
+	  drag: function (canvas, part, path)
 	  {
+	      var conversion = localXY(path.x, path.y, rotation);
+	      path.x = conversion.x;
+	      path.y = conversion.y;
 	      var layer = canvas.getLayer(this.name + _(part)), layer_shadow = canvas.getLayer(this.name + _(part) + '-shadow');
 	      var len = norm(layer_shadow.eventX - this.offsetX - layer_shadow.x1, layer_shadow.eventY - this.offsetY - layer_shadow.y1);
 	      layer_shadow.x = layer_shadow.y = 0;
