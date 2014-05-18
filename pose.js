@@ -11,6 +11,12 @@ $(function ()
       };
       var rotation = 0;
 
+      $(".btn").css("top", ($(window).height() - 400) / 2 - 100 + "px");
+      for (var i = 0; i < $(".btn").length; i++)
+	  $(".btn" + (i + 1)).css("left", ($(window).width() - 400) / 2 + i * 100 + "px");
+      $("#timer")
+	  .css("right", ($(window).width() - 400) / 2 + "px")
+	  .css("top", ($(window).height() - 400) / 2 + "px");
       $("canvas")
 	  .css("left", ($(window).width() - 400) / 2 + "px")
 	  .css("top", ($(window).height() - 400) / 2 + "px")
@@ -26,14 +32,35 @@ $(function ()
 	      x2: 160, y2: 100,
 	      x3: 240, y3: 100,
 	      x4: 200, y4: 210,
-	      drag: function (layer) { layer.x = layer.y = 0; }
+	      drag: function (layer) { layer.x = layer.y = 0; },
+	      name: 'body'
 	  })
 	  .drawArc({
 	      draggable: true,
 	      strokeStyle: '#000',
 	      strokeWidth: 6,
 	      x: 200, y: 70, radius: 20,
-	      drag: function (layer) { layer.x = 200; layer.y = 70; }
+	      mouseover: function (layer)
+	      {
+		  $(this).css('cursor', '-webkit-grab');
+		  layer.strokeStyle = '#f00';
+	      },
+	      mouseout: function (layer)
+	      {
+		  $(this).css('cursor', '');
+		  layer.strokeStyle = '#000';
+	      },
+	      dragstart: function (layer)
+	      {
+		  $(this).css('cursor', '-webkit-grabbing');
+	      },
+	      dragstop: function (layer) { $(this).css('cursor', '-webkit-grab'); },
+	      dragcancel: function (layer)
+	      {
+		  $(this).css('cursor', '-webkit-grab');
+		  layer.strokeStyle = '#000';
+	      },
+	      name: 'head'
 	  })
 	  .drawQuadratic({
 	      name: 'arrowRot',
@@ -67,8 +94,8 @@ $(function ()
 			  x: 200, y: 200
 		      });
 	      },
-	      dragstop: function (layer) { $(this).css('cursor', ''); },
-	      dragcancel: function (layer) { $(this).css('cursor', ''); }
+	      dragstop: function (layer) { $(this).css('cursor', '-webkit-grab'); },
+	      dragcancel: function (layer) { $(this).css('cursor', '-webkit-grab'); }
 	  });
 
       var Limb = function (name, x0, y0, len0, th0, len1, th1)
@@ -125,8 +152,7 @@ $(function ()
 	      layer_shadow.x = layer_shadow.y = 0;
 	      layer_shadow.x2 = layer_shadow.x1 + (layer_shadow.eventX - this.offsetX - layer_shadow.x1) * this['len' + part] / len;
 	      layer_shadow.y2 = layer_shadow.y1 + (layer_shadow.eventY - this.offsetY - layer_shadow.y1) * this['len' + part] / len;
-	      if (part == 0)
-	      {
+	      if (part == 0) {
 		  var layer_lower = canvas.getLayer(this.name + _(1) + '-shadow');
 		  layer_lower.x1 = layer_shadow.x2;
 		  layer_lower.y1 = layer_shadow.y2;
@@ -154,12 +180,12 @@ $(function ()
 	      layer = canvas.getLayer(this.name + _(part));
 	      layer_shadow = canvas.getLayer(this.name + _(part) + '-shadow');
 	      canvas.moveLayer(this.name + _(part), 1);
-	      if (part == 0)
-	      {
+	      if (part == 0) {
 		  canvas.setLayer(this.name + _(1), { x1: layer.x2, y1: layer.y2 });
 		  canvas.setLayer(this.name + _(1) + '-shadow', { x1: layer.x2, y1: layer.y2 });
 	      }
 	      canvas.moveLayer(this.name + _(part) + '-shadow', 2);
+	      canvas.moveLayer('body', 0);
 	      canvas.drawLayers();
 	      this.offsetX = this.offsetY = 0;
 	  },
@@ -173,7 +199,8 @@ $(function ()
 		      strokeCap: 'round',
 		      x1: this.x0, y1: this.y0,
 		      x2: this.x1, y2: this.y1,
-		      name: this.name + '-upper'
+		      name: this.name + '-upper',
+		      groups: ['limbs']
 		  })
 		  .drawLine({
 		      draggable: true,
@@ -186,12 +213,13 @@ $(function ()
 		      x2: this.x1, y2: this.y1,
 		      name: this.name + '-upper-shadow',
 		      bringToFront: true,
-		      mouseover: Limb.prototype.mouseover.bind(this, canvas, 0),
-		      mouseout: Limb.prototype.mouseout.bind(this, canvas, 0),
-		      dragstart: Limb.prototype.dragstart.bind(this, canvas, 0),
-		      drag: Limb.prototype.drag.bind(this, canvas, 0),
-		      dragstop: Limb.prototype.dragstop.bind(this, canvas, 0),
-		      dragcancel: Limb.prototype.dragstop.bind(this, canvas, 0)
+		      mouseover: this.mouseover.bind(this, canvas, 0),
+		      mouseout: this.mouseout.bind(this, canvas, 0),
+		      dragstart: this.dragstart.bind(this, canvas, 0),
+		      drag: this.drag.bind(this, canvas, 0),
+		      dragstop: this.dragstop.bind(this, canvas, 0),
+		      dragcancel: this.dragstop.bind(this, canvas, 0),
+		      groups: ['limbs']
 		  })
 		  .drawLine({
 		      draggable: true,
@@ -200,7 +228,8 @@ $(function ()
 		      strokeCap: 'round',
 		      x1: this.x1, y1: this.y1,
 		      x2: this.x2, y2: this.y2,
-		      name: this.name + '-lower'
+		      name: this.name + '-lower',
+		      groups: ['limbs']
 		  })
 		  .drawLine({
 		      draggable: true,
@@ -213,12 +242,13 @@ $(function ()
 		      x2: this.x2, y2: this.y2,
 		      name: this.name + '-lower-shadow',
 		      bringToFront: true,
-		      mouseover: Limb.prototype.mouseover.bind(this, canvas, 1),
-		      mouseout: Limb.prototype.mouseout.bind(this, canvas, 1),
-		      dragstart: Limb.prototype.dragstart.bind(this, canvas, 1),
-		      drag: Limb.prototype.drag.bind(this, canvas, 1),
-		      dragstop: Limb.prototype.dragstop.bind(this, canvas, 1),
-		      dragcancel: Limb.prototype.dragstop.bind(this, canvas, 1)
+		      mouseover: this.mouseover.bind(this, canvas, 1),
+		      mouseout: this.mouseout.bind(this, canvas, 1),
+		      dragstart: this.dragstart.bind(this, canvas, 1),
+		      drag: this.drag.bind(this, canvas, 1),
+		      dragstop: this.dragstop.bind(this, canvas, 1),
+		      dragcancel: this.dragstop.bind(this, canvas, 1),
+		      groups: ['limbs']
 		  });
 	  },
 	  layer: function (canvas, part) { return canvas.getLayer(this.name + _(part)); }
@@ -233,18 +263,68 @@ $(function ()
       for (var e in limbs)
 	  limbs[e].init($("canvas"));
 
-      $('canvas')
-	  .on('dblclick',
+      $('.btn1')
+	  .on('click',
 	      function ()
 	      {
-		  $(this).getLayer('arrowRot').visible = false;
+		  $('canvas')
+		      .rotateCanvas({ rotate: -rotation * 180 / Math.PI, x: 200, y: 200 })
+		      .removeLayerGroup('limbs');
 		  for (var e in limbs)
-		      limbs[e].layer($(this), 0).strokeStyle = limbs[e].layer($(this), 1).strokeStyle = '#000';
-		  $(this).drawLayers();
-		  $('<img>')
-		      .attr('src', this.toDataURL('png', 100))
-		      .css('width', '100px')
-		      .appendTo($('body'));
-		  $(this).getLayer('arrowRot').visible = true;
+		      limbs[e].init($("canvas"));
+		  rotation = 0;
+		  $('canvas').getLayer('head').x = 200;
+		  $('canvas').getLayer('head').y = 70;
+		  $('canvas').drawLayers();
+	      });
+
+      $('.btn2')
+	  .on('click',
+	      function ()
+	      {
+		  var name = prompt('名前を入力', '');
+		  if (name) {
+		      $('#sample').attr('src', name).show();
+		  } else {
+		      $('#sample').hide();
+		  }
+	      });
+
+      $('.btn3')
+	  .on('click',
+	      function ()
+	      {
+		  $("canvas").getLayer('arrowRot').visible = false;
+		  for (var e in limbs)
+		      limbs[e].layer($("canvas"), 0).strokeStyle = limbs[e].layer($("canvas"), 1).strokeStyle = '#000';
+		  $("canvas").drawLayers();
+		  $(this).attr('href', document.getElementsByTagName("canvas")[0].toDataURL('png', 100));
+		  $("canvas").getLayer('arrowRot').visible = true;
+		  $("canvas").drawLayers();
+		  return true;
+	      });
+
+      var timer = false;
+      var time = 0;
+      var zeroPadding = function (n) { return ('0' + n).substr(-2); };
+      var formatTime = function (sec) { return zeroPadding(Math.floor(sec / 60)) + ':' + zeroPadding(sec % 60); };
+      var refreshTimer = function () { $('#timer').text(formatTime(time)); };
+      $('.btn4')
+	  .on('click',
+	      function ()
+	      {
+		  $('#timer').show();
+		  if (timer === false) {
+		      time = 0;
+		      refreshTimer();
+		      timer = setInterval(function () { time++; refreshTimer(); }, 1000);
+		  } else if (timer == true) {
+		      time = 0;
+		      timer = false;
+		      refreshTimer();
+		  } else {
+		      clearTimeout(timer);
+		      timer = true;
+		  }
 	      });
   });

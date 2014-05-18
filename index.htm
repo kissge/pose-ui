@@ -1,21 +1,20 @@
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-<script src="jcanvas.min.js"></script>
-<script src="pose.js"></script>
-<canvas></canvas>
-<style>
-  * { margin: 0; padding: 0; }
-  body { background-color: #def; }
-  canvas
-  {
-    position: absolute;
-    background-color: #fff;
-    border-radius: 30px;
-    box-shadow: 0px 4px 8px #000;
-  }
-  img
-  {
-    background-color: #fff;
-    border-radius: 10px;
-    margin: 3px;
-  }
-</style>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css" rel="stylesheet">
+    <link href="pose.css" rel="stylesheet">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="jcanvas.min.js"></script>
+    <script src="pose.js"></script>
+    <title>Pose UI</title>
+  </head>
+  <body>
+    <canvas></canvas>
+    <i class="btn btn1 fa fa-arrow-circle-o-left" title="Reset"></i>
+    <i class="btn btn2 fa fa-book" title="Show sample"></i>
+    <a download="pose.png" class="btn btn3 fa fa-save" title="Save as an image"></a>
+    <i class="btn btn4 fa fa-clock-o" title="Start/stop timer"></i>
+    <div id="timer"></div>
+    <img id="sample">
+  </body>
+</html>
