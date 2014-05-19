@@ -3,6 +3,8 @@ $(function ()
       'use strict';
 
       var fuzzy = 20;
+      var rotationStep = 10;
+      var rotationTimer;
       var getRot = function (x, y)
       {
 	  x -= 200;
@@ -10,6 +12,7 @@ $(function ()
 	  return Math.asin(y / Math.sqrt(x * x + y * y));
       };
       var rotation = 0;
+      var rotationLock = false;
 
       $(".btn").css("top", ($(window).height() - 400) / 2 - 100 + "px");
       for (var i = 0; i < $(".btn").length; i++)
@@ -75,36 +78,27 @@ $(function ()
 	      strokeWidth: 8,
 	      rounded: true,
 	      startArrow: true,
-	      endArrow: true,
 	      arrowRadius: 15,
 	      arrowAngle: 90,
 	      x1: 370, y1: 150,
 	      cx1: 410, cy1: 200,
 	      x2: 370, y2: 250,
-	      mouseover: function (layer) { $(this).css('cursor', '-webkit-grab'); },
+	      mouseover: function (layer) { $(this).css('cursor', 'pointer'); },
 	      mouseout: function (layer) { $(this).css('cursor', ''); },
-	      dragstart: function (layer)
-	      {
-		  $(this).css('cursor', '-webkit-grabbing');
-		  var conversion = globalXY(layer.eventX, layer.eventY, rotation);
-		  this.offsetTheta = getRot(conversion.x, conversion.y);
-	      },
 	      drag: function (layer)
 	      {
-		  console.log(rotation * 180 / Math.PI);
-		  var rot = rotation;
 		  layer.x = layer.y = 0;
-		  var conversion = globalXY(layer.eventX, layer.eventY, rotation);
-		  rotation = getRot(conversion.x, conversion.y) - this.offsetTheta;
-		  rotation = Math.floor(rotation / (Math.PI / 36)) * Math.PI / 36;
-		  $('canvas')
-		      .rotateCanvas({
-			  rotate: (rotation - rot) * 180 / Math.PI,
-			  x: 200, y: 200
-		      });
 	      },
-	      dragstop: function (layer) { $(this).css('cursor', '-webkit-grab'); },
-	      dragcancel: function (layer) { $(this).css('cursor', '-webkit-grab'); }
+	      mousedown: function (layer)
+	      {
+		  rotation -= rotationStep;
+		  $(this)
+		      .rotateCanvas({
+			  rotate: -rotationStep,
+			  x: 200, y: 200
+		      })
+		      .drawLayers();
+	      },
 	  });
 
       var Limb = function (name, x0, y0, len0, th0, len1, th1)
@@ -280,7 +274,7 @@ $(function ()
 	      function ()
 	      {
 		  $('canvas')
-		      .rotateCanvas({ rotate: -rotation * 180 / Math.PI, x: 200, y: 200 })
+		      .rotateCanvas({ rotate: -rotation, x: 200, y: 200 })
 		      .removeLayerGroup('limbs');
 		  for (var e in limbs)
 		      limbs[e].init($("canvas"));
