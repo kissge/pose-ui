@@ -115,7 +115,7 @@ $(function ()
       };
       var _ = function (i) { return ['-upper', '-lower'][i]; };
       var norm = function (x, y) { return Math.pow(x * x + y * y, 0.5); };
-      var globalXY = function (x, y, rot) { x -= 200; y -= 200; return { x: 200 + x * Math.cos(rot) + y * Math.sin(rot), y: 200 - x * Math.sin(rot) + y * Math.cos(rot) }; };
+      var globalXY = function (x, y, rot) { x -= 200; y -= 200; rot *= Math.PI / 180; return { x: 200 + x * Math.cos(rot) + y * Math.sin(rot), y: 200 - x * Math.sin(rot) + y * Math.cos(rot) }; };
       var localXY = function (x, y, rot) { return globalXY(x, y, -rot); };
       Limb.prototype = {
 	  mouseover: function (canvas, part)
